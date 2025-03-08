@@ -18,7 +18,9 @@ model User {
   id String @id @default(uuid())
   email String @unique
   password String
+  status Status @default(PENDING)
   role Role @default(USER)
+  createAt DateTime @default(now())
 }
 
 
@@ -26,4 +28,10 @@ enum Role {
   USER
   ADMIN
   MANAGER
+}
+
+enum Status {
+  PENDING
+  ACTIVE
+  REJECTED
 }

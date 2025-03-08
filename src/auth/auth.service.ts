@@ -10,7 +10,7 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string) {
-    const user = await this.prisma.user.findFirstOrThrow({
+    const user = await this.prisma.user.findFirst({
       where: { email },
     });
 
@@ -25,6 +25,8 @@ export class AuthService {
       data: {
         email: payload.email,
         password: payload.password,
+        role: 'USER',
+        status: 'PENDING',
       },
     });
   }

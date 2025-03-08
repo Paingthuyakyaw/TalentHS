@@ -11,18 +11,21 @@ import {
 import { AuthService } from './auth.service';
 import * as bcrypt from 'bcrypt';
 import { authPayloadDto } from './dto/auth.dto';
-import { ValidationPipe } from 'src/validation/validation.pipe';
 import { JwtService } from '@nestjs/jwt';
+import { Public } from 'src/role/public.decorator';
+import { CompanyService } from 'src/company/company.service';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private authService: AuthService,
     private jwtService: JwtService,
+    private companyService: CompanyService,
   ) {}
 
   @Post('/signup')
-  async signUp(@Body(new ValidationPipe()) payload: authPayloadDto) {
+  @Public()
+  async signUp(@Body() payload: authPayloadDto) {
     try {
       const hashPassword = await bcrypt.hash(payload.password, 10);
       const findUser = await this.authService.validateUser(payload.email);
@@ -34,6 +37,7 @@ export class AuthController {
       const user = await this.authService.createUser({
         email: payload.email,
         password: hashPassword,
+        role: 'USER',
       });
 
       return {
@@ -54,27 +58,45 @@ export class AuthController {
   }
 
   @Post('/login')
-  async login(@Body(new ValidationPipe()) payload: authPayloadDto) {
-    const user = await this.authService.validateUser(payload.email);
+  @Public()
+  async login(@Body() payload: authPayloadDto) {
+    try {
+      const user = await this.authService.validateUser(payload.email);
 
-    if (!user) {
-      throw new NotFoundException({ message: 'User not found' });
+      if (!user) {
+        throw new NotFoundException({ message: 'User not found' });
+      }
+
+      if (user.status !== 'APPROVED' && user.company.status !== 'APPROVED') {
+        throw new UnauthorizedException({
+          message: 'User is not approved yet',
+        });
+      }
+
+      const compare = bcrypt.compareSync(payload.password, user.password);
+
+      if (!compare) {
+        throw new UnauthorizedException({ message: 'email or password wrong' });
+      }
+
+      return {
+        token: this.jwtService.sign({
+          sub: user.id,
+          email: user.email,
+          role: user.role,
+        }),
+        data: {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+        },
+      };
+    } catch (err) {
+      throw new InternalServerErrorException({
+        message: 'Something went worng',
+        err: err?.response?.message,
+      });
     }
-
-    const compare = bcrypt.compareSync(payload.password, user.password);
-
-    if (!compare) {
-      throw new UnauthorizedException({ message: 'email or password wrong' });
-    }
-
-    return {
-      token: this.jwtService.sign({ sub: user.id, email: user.email }),
-      data: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-      },
-    };
   }
 
   @Get()

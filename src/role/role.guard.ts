@@ -1,25 +1,49 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Observable } from 'rxjs';
-import { ROLES_KEY } from './role.decorator';
+import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class RoleGuard implements CanActivate {
-  constructor(private reflactor: Reflector) {}
-  canActivate(
-    context: ExecutionContext,
-  ): boolean | Promise<boolean> | Observable<boolean> {
-    const requireRole = this.reflactor.getAllAndOverride(ROLES_KEY, [
+  constructor(private reflector: Reflector) {}
+
+  canActivate(context: ExecutionContext): boolean {
+    const isPublic = this.reflector.getAllAndOverride<boolean>('isPublic', [
       context.getHandler(),
       context.getClass(),
     ]);
 
-    if (!requireRole) {
+    if (isPublic) {
       return true;
     }
 
-    const { user } = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest();
+    const authHeader = request.headers.authorization;
 
-    return requireRole.some((role) => user?.roles?.includes(role));
+    if (!authHeader) {
+      return false;
+    }
+
+    try {
+      const token = authHeader.split(' ')[1];
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET_KEY || 'SECRET_KEY',
+      );
+
+      request.user = decoded; // ✅ User data ကို request ထဲထည့်မယ်
+
+      const requiredRoles = this.reflector.getAllAndOverride('roles', [
+        context.getHandler(),
+        context.getClass(),
+      ]);
+
+      if (!requiredRoles) {
+        return true;
+      }
+
+      return requiredRoles.includes(decoded.role);
+    } catch (error) {
+      return false;
+    }
   }
 }

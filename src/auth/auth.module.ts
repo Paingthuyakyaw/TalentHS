@@ -4,6 +4,7 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { AuthService } from './auth.service';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
+import { CompanyModule } from 'src/company/company.module';
 
 @Module({
   controllers: [AuthController],
@@ -14,6 +15,7 @@ import { JwtModule } from '@nestjs/jwt';
       secret: process.env.JWT_SECRET_KEY,
       signOptions: { expiresIn: '1d' },
     }),
+    CompanyModule,
   ],
   exports: [AuthService],
   providers: [AuthService],

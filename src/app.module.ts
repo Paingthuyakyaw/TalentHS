@@ -7,9 +7,10 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { RoleGuard } from './role/role.guard';
+import { CompanyModule } from './company/company.module';
 
 @Module({
-  imports: [PrismaModule, UserModule, AuthModule],
+  imports: [PrismaModule, UserModule, AuthModule, CompanyModule],
   controllers: [AppController],
   providers: [
     AppService,

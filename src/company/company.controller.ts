@@ -31,7 +31,7 @@ export class CompanyController {
       const superAdmin = await this.authService.createUser({
         email: payload.email,
         password: hashPass,
-        role: 'SUPER_ADMIN',
+        role: 'ADMIN',
         companyId: company.id,
         status: company.status,
       });

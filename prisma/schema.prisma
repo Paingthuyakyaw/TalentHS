@@ -37,7 +37,8 @@ model User {
   password String
   status Status @default(PENDING)
   role Role @default(USER)
-  companyId String // ✅ Ensure this is optional for migration purposes
+  companyId String 
+  name String?
   company Company @relation(fields: [companyId], references: [id])
   createdAt DateTime @default(now())
 }
@@ -46,7 +47,7 @@ enum Role {
   USER
   ADMIN
   MANAGER
-    SUPER_ADMIN
+  SUPER_ADMIN
 }
 
 enum Status {

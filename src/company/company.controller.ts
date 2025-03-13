@@ -9,7 +9,7 @@ import { CompanyService } from './company.service';
 import { Public } from 'src/role/public.decorator';
 import { CompanyDto } from './dto/company.dto';
 import { AuthService } from 'src/auth/auth.service';
-import { hash } from 'bcrypt';
+import { hash } from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 
 @Controller('company')
@@ -27,7 +27,6 @@ export class CompanyController {
       const company = await this.companyService.createCompany(payload);
 
       const hashPass = await hash(payload.password, 10);
-
       const superAdmin = await this.authService.createUser({
         email: payload.email,
         password: hashPass,

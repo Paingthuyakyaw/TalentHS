@@ -18,7 +18,6 @@ export class UserController {
   constructor(private userService: UserService) {}
 
   @Get('/user')
-  @Role(role.USER)
   userRole() {
     return 'This is user';
   }
@@ -30,7 +29,7 @@ export class UserController {
   }
 
   @Post('/user/status/:id')
-  @Role(role.ADMIN)
+  @Role(role.ADMIN , role.MANAGER , role.SUPER_ADMIN)
   async changeStatus(
     @Param('id') id: string,
     @Body() { status }: { status: keyof typeof $Enums.Status },

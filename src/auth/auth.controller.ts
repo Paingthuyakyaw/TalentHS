@@ -9,7 +9,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { authPayloadDto } from './dto/auth.dto';
 import { JwtService } from '@nestjs/jwt';
 import { Public } from 'src/role/public.decorator';
@@ -73,7 +73,7 @@ export class AuthController {
         });
       }
 
-      const compare = bcrypt.compareSync(payload.password, user.password);
+      const compare = await bcrypt.compare(payload.password, user.password);
 
       if (!compare) {
         throw new UnauthorizedException({ message: 'email or password wrong' });

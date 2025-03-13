@@ -36,14 +36,54 @@ model User {
   email String @unique
   password String
   status Status @default(PENDING)
-  role Role @default(USER)
   companyId String 
   name String?
   company Company @relation(fields: [companyId], references: [id])
   createdAt DateTime @default(now())
+  roleId String
+  role Role @relation(fields: [roleId] , references: [id])
+  permissions UserPermission[]
 }
 
-enum Role {
+model Role {
+  id String @id @default(uuid())
+  name RoleEnum @unique
+  createAt DateTime @default(now())
+  users User[]
+  permissions RolePermission[]
+}
+
+
+
+
+model Permission {
+  id String @id @default(uuid())
+  permissions PermissionEnum @unique
+  users UserPermission[]
+  role RolePermission[]
+  createAt DateTime @default(now())
+}
+
+
+model UserPermission {
+  userId String
+  user User @relation(fields: [userId] , references: [id])
+  permissionId String
+  permission Permission @relation(fields: [permissionId] , references: [id])  
+  createAt DateTime @default(now())
+  @@id([userId , permissionId])
+}
+
+model RolePermission {
+  roleId String
+  role Role @relation(fields: [roleId] , references: [id])
+  permissionId String
+  permission Permission @relation(fields: [permissionId] , references: [id])
+  @@id([roleId , permissionId])
+}
+
+
+enum RoleEnum {
   USER
   ADMIN
   MANAGER
@@ -54,4 +94,13 @@ enum Status {
   PENDING
   APPROVED
   REJECTED
+}
+
+enum PermissionEnum {
+  VIEW
+  CREATE
+  DELETE
+  UPDATE
+  MANAGE_USERS
+  MANAGE_COMPANY
 }
